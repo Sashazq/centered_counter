@@ -1,27 +1,82 @@
-import { factory } from "./factory";
+import './style/main.scss'
+import { factory } from './factory'
 
-let count = factory(0, 1);
+// Type definitions
+type CountFunction = () => number
+type InputValues = {
+    startAt: number
+    step: number
+}
 
-function update_count_and_reset_counter() {}
+// Initial state
+let counter: number = 0
+let count: CountFunction
+const inputValues: InputValues = {
+    startAt: 0,
+    step: 1,
+}
 
-const start_at_control = document.getElementById(
-  "start_at",
-) as HTMLInputElement;
+// DOM elements
+let currentCountElement: HTMLSpanElement | null = null
 
-const step_control = document.getElementById("step") as HTMLInputElement;
+// Initialize DOM elements
+function initDOMElements(): void {
+    currentCountElement = document.querySelector(
+        '.current_count'
+    ) as HTMLSpanElement
+}
 
-start_at_control?.addEventListener("change", () => {});
+// Update current count text in the DOM
+function updateCurrentCountText(value: string): void {
+    if (!currentCountElement) {
+        initDOMElements()
+    }
 
-step_control?.addEventListener("change", () => {});
+    if (currentCountElement?.textContent !== value) {
+        currentCountElement!.textContent = value
+    }
+}
 
-const count_button = document.querySelector(
-  ".count_button",
-) as HTMLButtonElement;
+// Counter management
+function updateCount(): void {
+    counter = count()
+    updateCurrentCountText(counter.toString())
+}
 
-const current_count = document.querySelector(
-  ".current_count",
-) as HTMLSpanElement;
+function resetCounter(): void {
+    count = factory(inputValues.startAt, inputValues.step)
+    counter = inputValues.startAt
+    updateCurrentCountText(counter.toString())
+}
 
-function update_count() {}
+// Event handling
+function handleInputChange(event: Event, type: keyof InputValues): void {
+    const target = event.target as HTMLInputElement
+    inputValues[type] = Number(target.value)
+    resetCounter()
+}
 
-count_button.addEventListener("click", update_count);
+// Attach event listeners
+function attachEventListeners(): void {
+    const startAtControl = document.getElementById(
+        'start_at'
+    ) as HTMLInputElement
+    const stepControl = document.getElementById('step') as HTMLInputElement
+    const countButton = document.querySelector(
+        '.count_button'
+    ) as HTMLButtonElement
+
+    startAtControl?.addEventListener('change', (event) =>
+        handleInputChange(event, 'startAt')
+    )
+    stepControl?.addEventListener('change', (event) =>
+        handleInputChange(event, 'step')
+    )
+    countButton?.addEventListener('click', updateCount)
+}
+
+// Initialize on DOMContentLoaded
+document.addEventListener('DOMContentLoaded', () => {
+    resetCounter()
+    attachEventListeners()
+})
